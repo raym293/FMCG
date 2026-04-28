@@ -64,3 +64,37 @@ class Bottleneck(BaseModel):
 
 class RoutingResponse(BaseModel):
     bottlenecks: List[Bottleneck]
+
+
+class DashboardKpis(BaseModel):
+    osa_score: float
+    inventory_health_index: float
+    skus_above_stockout_threshold: int
+
+
+class RegionHealth(BaseModel):
+    region: str
+    stock_to_sales_ratio: float
+    status: Literal["healthy", "watch", "critical"]
+
+
+class PrioritySku(BaseModel):
+    sku_id: str
+    region: str
+    stockout_risk_pct: float
+    recommended_action: str
+
+
+class DashboardSnapshotResponse(BaseModel):
+    kpis: DashboardKpis
+    region_health: List[RegionHealth]
+    priority_list: List[PrioritySku]
+
+
+class ScenarioRequest(BaseModel):
+    delay_days: int = Field(ge=0, le=14)
+
+
+class ScenarioResponse(BaseModel):
+    baseline: DashboardSnapshotResponse
+    scenario: DashboardSnapshotResponse

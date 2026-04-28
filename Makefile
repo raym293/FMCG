@@ -1,9 +1,11 @@
 SHELL := /bin/bash
 
-.PHONY: help db-up db-down db-logs seed backend-install backend-test backend-run mcp-install mcp-run frontend-install frontend-dev frontend-build clean
+.PHONY: help setup run db-up db-down db-logs seed backend-install backend-test backend-run mcp-install mcp-run frontend-install frontend-dev frontend-build clean
 
 help:
 	@echo "Available targets:"
+	@echo "  setup            One command bootstrap for whole project"
+	@echo "  run              One command run for full project"
 	@echo "  db-up            Start PostgreSQL + TimescaleDB"
 	@echo "  db-down          Stop database containers"
 	@echo "  db-logs          Tail database logs"
@@ -18,8 +20,31 @@ help:
 	@echo "  frontend-build   Build frontend production bundle"
 	@echo "  clean            Remove local build/venv artifacts"
 
+setup: db-up backend-install mcp-install frontend-install frontend-build backend-test
+
+run: db-up
+	@test -d backend/.venv || (echo "Missing backend/.venv. Run: make setup" && exit 1)
+	@test -d mcp-server/.venv || (echo "Missing mcp-server/.venv. Run: make setup" && exit 1)
+	@test -d frontend/node_modules || (echo "Missing frontend/node_modules. Run: make setup" && exit 1)
+	@set -m; \
+	trap 'echo ""; echo "Stopping services..."; kill 0' INT TERM EXIT; \
+	(cd backend && source .venv/bin/activate && uvicorn app.main:app --reload) & \
+	(cd mcp-server && source .venv/bin/activate && python server.py) & \
+	(cd frontend && npm run dev) & \
+	wait
+
 db-up:
-	docker compose up -d
+	@set -e; \
+	for i in 1 2 3; do \
+		echo "Starting database (attempt $$i/3)..."; \
+		if docker compose up -d; then \
+			exit 0; \
+		fi; \
+		echo "Retrying after transient pull/start failure..."; \
+		sleep 5; \
+	done; \
+	echo "Database startup failed after 3 attempts."; \
+	exit 1
 
 db-down:
 	docker compose down
@@ -56,4 +81,3 @@ frontend-build:
 
 clean:
 	rm -rf backend/.venv mcp-server/.venv frontend/node_modules frontend/dist
-

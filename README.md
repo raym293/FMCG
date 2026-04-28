@@ -10,6 +10,7 @@ make db-up
 make backend-install backend-run
 make mcp-install mcp-run
 make frontend-install frontend-dev
+make run
 ```
 
 ## Monorepo Structure

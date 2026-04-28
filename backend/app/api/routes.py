@@ -1,13 +1,17 @@
 from fastapi import APIRouter
 
 from app.schemas.domain import (
+    DashboardSnapshotResponse,
     ForecastRequest,
     ForecastResponse,
     OptimizationRequest,
     OptimizationResponse,
+    ScenarioRequest,
+    ScenarioResponse,
     RoutingRequest,
     RoutingResponse,
 )
+from app.services.dashboard import get_dashboard_snapshot, run_delay_scenario
 from app.services.forecasting import run_forecast
 from app.services.optimization import optimize_distribution
 from app.services.routing import detect_bottlenecks
@@ -33,3 +37,13 @@ def optimize(req: OptimizationRequest) -> OptimizationResponse:
 @router.post("/routing/bottlenecks", response_model=RoutingResponse)
 def routing(req: RoutingRequest) -> RoutingResponse:
     return detect_bottlenecks(req)
+
+
+@router.get("/dashboard/snapshot", response_model=DashboardSnapshotResponse)
+def dashboard_snapshot() -> DashboardSnapshotResponse:
+    return get_dashboard_snapshot()
+
+
+@router.post("/dashboard/scenario", response_model=ScenarioResponse)
+def dashboard_scenario(req: ScenarioRequest) -> ScenarioResponse:
+    return run_delay_scenario(req.delay_days)
