@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "fmcg-digital-twin": {
+      "command": "python",
+      "args": ["server.py"],
+      "cwd": "./mcp-server",
+      "env": {
+        "POSTGRES_DSN": "postgresql://postgres:postgres@localhost:5432/fmcg"
+      }
+    }
+  }
+}

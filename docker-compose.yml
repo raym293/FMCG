@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    container_name: fmcg-postgres
+    environment:
+      POSTGRES_DB: fmcg
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./backend/sql:/docker-entrypoint-initdb.d
+
+volumes:
+  pgdata:
